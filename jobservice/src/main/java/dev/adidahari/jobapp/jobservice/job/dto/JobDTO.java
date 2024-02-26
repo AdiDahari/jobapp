@@ -1,10 +1,12 @@
 package dev.adidahari.jobapp.jobservice.job.dto;
 
 import dev.adidahari.jobapp.jobservice.job.external.Company;
+import dev.adidahari.jobapp.jobservice.job.external.Review;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-public class JobWithCompanyDTO {
+public class JobDTO {
     private Long id;
     private String title;
     private String description;
@@ -12,8 +14,9 @@ public class JobWithCompanyDTO {
     private BigDecimal maxSalary;
     private String location;
     private Company company;
+    private List<Review> companyReviews;
 
-    public JobWithCompanyDTO() {
+    public JobDTO() {
     }
 
     public Long getId() {
@@ -70,5 +73,13 @@ public class JobWithCompanyDTO {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    public List<Review> getCompanyReviews() {
+        return companyReviews;
+    }
+
+    public void setCompanyReviews(List<Review> companyReviews) {
+        this.companyReviews = companyReviews;
     }
 }

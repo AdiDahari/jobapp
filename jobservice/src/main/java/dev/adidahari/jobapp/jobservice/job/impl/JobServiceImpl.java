@@ -3,17 +3,19 @@ package dev.adidahari.jobapp.jobservice.job.impl;
 import dev.adidahari.jobapp.jobservice.job.Job;
 import dev.adidahari.jobapp.jobservice.job.JobRepository;
 import dev.adidahari.jobapp.jobservice.job.JobService;
-import dev.adidahari.jobapp.jobservice.job.dto.JobWithCompanyDTO;
+import dev.adidahari.jobapp.jobservice.job.dto.JobDTO;
 import dev.adidahari.jobapp.jobservice.job.external.Company;
+import dev.adidahari.jobapp.jobservice.job.external.Review;
 import dev.adidahari.jobapp.jobservice.job.mapper.JobMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class JobServiceImpl implements JobService {
@@ -30,7 +32,7 @@ public class JobServiceImpl implements JobService {
     // Override Methods //
 
     @Override
-    public List<JobWithCompanyDTO> getAllJobs() {
+    public List<JobDTO> getAllJobs() {
         List<Job> jobs = jobRepository.findAll();
 
         return jobs.stream()
@@ -38,16 +40,16 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public JobWithCompanyDTO createJob(Job job) {
+    public JobDTO createJob(Job job) {
 
-        JobWithCompanyDTO jobWithCompanyDTO = jobToJobWithCompanyDTO(job);
+        JobDTO jobDTO = jobToJobWithCompanyDTO(job);
         Job savedJob = jobRepository.save(job);
 
-        return jobWithCompanyDTO;
+        return jobDTO;
     }
 
     @Override
-    public JobWithCompanyDTO getJobById(Long id)
+    public JobDTO getJobById(Long id)
     {
         Job job = jobRepository.findById(id).orElse(null);
         if (job != null) {
@@ -67,7 +69,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public JobWithCompanyDTO updateJob(Long id, Job updatedJob) {
+    public JobDTO updateJob(Long id, Job updatedJob) {
 
         Optional<Job> jobNullable = jobRepository.findById(id);
 
@@ -83,11 +85,11 @@ public class JobServiceImpl implements JobService {
             job.setLocation(updatedJob.getLocation());
             job.setCompanyId(updatedJob.getCompanyId());
 
-            JobWithCompanyDTO jobWithCompanyDTO = jobToJobWithCompanyDTO(job);
+            JobDTO jobDTO = jobToJobWithCompanyDTO(job);
 
             jobRepository.save(job);
 
-            return jobWithCompanyDTO;
+            return jobDTO;
         }
 
         return null;
@@ -95,14 +97,27 @@ public class JobServiceImpl implements JobService {
 
     // Private Methods //
 
-    private JobWithCompanyDTO jobToJobWithCompanyDTO(Job job) {
+    private JobDTO jobToJobWithCompanyDTO(Job job) {
         Company company = getCompany(job);
+        List<Review> reviews = getCompanyReviews(company);
 
-        return JobMapper.convertToJobWithCompanyDto(job, company);
+        return JobMapper.convertToJobDto(job, company, reviews);
     }
 
     private Company getCompany(Job job) {
         return restTemplate.getForObject("http://company-service:8081/companies/" + job.getCompanyId(),
                 Company.class);
+    }
+
+    private List<Review> getCompanyReviews(Company company) {
+        ResponseEntity<List<Review>> reviewsResponse = restTemplate.exchange(
+                "http://review-service:8083/reviews?companyId=" + company.getId(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Review>>() {});
+
+        return reviewsResponse.getBody();
+
+
     }
 }

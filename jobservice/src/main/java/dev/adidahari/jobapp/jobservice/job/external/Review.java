@@ -1,30 +1,10 @@
-package dev.adidahari.jobapp.reviewservice.review;
+package dev.adidahari.jobapp.jobservice.job.external;
 
-
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "reviews")
 public class Review {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
     private String description;
     private double rating;
-    private Long companyId;
-
-    public Review() {
-
-    }
-
-    public Long getCompanyId() {
-        return companyId;
-    }
-
-    public void setCompanyId(Long companyId) {
-        this.companyId = companyId;
-    }
 
     public Long getId() {
         return id;

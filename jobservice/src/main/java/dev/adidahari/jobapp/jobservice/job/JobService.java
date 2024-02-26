@@ -1,17 +1,17 @@
 package dev.adidahari.jobapp.jobservice.job;
 
 
-import dev.adidahari.jobapp.jobservice.job.dto.JobWithCompanyDTO;
+import dev.adidahari.jobapp.jobservice.job.dto.JobDTO;
 
 import java.util.List;
 
 public interface JobService {
-    List<JobWithCompanyDTO> getAllJobs();
-    JobWithCompanyDTO createJob(Job job);
+    List<JobDTO> getAllJobs();
+    JobDTO createJob(Job job);
 
-    JobWithCompanyDTO getJobById(Long id);
+    JobDTO getJobById(Long id);
 
     boolean deleteJob(Long id);
 
-    JobWithCompanyDTO updateJob(Long id, Job job);
+    JobDTO updateJob(Long id, Job job);
 }

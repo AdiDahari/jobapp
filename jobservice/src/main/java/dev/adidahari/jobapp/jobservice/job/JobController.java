@@ -1,6 +1,6 @@
 package dev.adidahari.jobapp.jobservice.job;
 
-import dev.adidahari.jobapp.jobservice.job.dto.JobWithCompanyDTO;
+import dev.adidahari.jobapp.jobservice.job.dto.JobDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +19,9 @@ public class JobController {
     }
 
     @GetMapping
-    public ResponseEntity<List<JobWithCompanyDTO>> getAllJobs() {
+    public ResponseEntity<List<JobDTO>> getAllJobs() {
 
-        ResponseEntity<List<JobWithCompanyDTO>> response = null;
+        ResponseEntity<List<JobDTO>> response = null;
         try {
             response = ResponseEntity.ok(jobService.getAllJobs());
         } catch (Exception e) {
@@ -32,10 +32,10 @@ public class JobController {
     }
 
     @PostMapping
-    public ResponseEntity<JobWithCompanyDTO> createJob(@RequestBody Job job) {
+    public ResponseEntity<JobDTO> createJob(@RequestBody Job job) {
         try {
-            JobWithCompanyDTO jobWithCompanyDTO = jobService.createJob(job);
-            return ResponseEntity.ok(jobWithCompanyDTO);
+            JobDTO jobDTO = jobService.createJob(job);
+            return ResponseEntity.ok(jobDTO);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -43,12 +43,12 @@ public class JobController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<JobWithCompanyDTO> getJobById(@PathVariable Long id) {
-        JobWithCompanyDTO jobWithCompanyDTO = jobService.getJobById(id);
+    public ResponseEntity<JobDTO> getJobById(@PathVariable Long id) {
+        JobDTO jobDTO = jobService.getJobById(id);
 
-        return jobWithCompanyDTO == null ?
+        return jobDTO == null ?
                 ResponseEntity.notFound().build() :
-                ResponseEntity.ok(jobWithCompanyDTO);
+                ResponseEntity.ok(jobDTO);
 
     }
 
@@ -62,13 +62,13 @@ public class JobController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<JobWithCompanyDTO> updateJob(@PathVariable Long id, @RequestBody Job updatedJob) {
+    public ResponseEntity<JobDTO> updateJob(@PathVariable Long id, @RequestBody Job updatedJob) {
 
         try {
-            JobWithCompanyDTO jobWithCompanyDTO = jobService.updateJob(id, updatedJob);
+            JobDTO jobDTO = jobService.updateJob(id, updatedJob);
 
-            if (jobWithCompanyDTO != null) {
-                return ResponseEntity.ok(jobWithCompanyDTO);
+            if (jobDTO != null) {
+                return ResponseEntity.ok(jobDTO);
             }
 
             return ResponseEntity.notFound().build();
