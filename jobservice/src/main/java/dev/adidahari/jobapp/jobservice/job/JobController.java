@@ -20,13 +20,25 @@ public class JobController {
 
     @GetMapping
     public ResponseEntity<List<JobWithCompanyDTO>> getAllJobs() {
-        return ResponseEntity.ok(jobService.getAllJobs());
+
+        ResponseEntity<List<JobWithCompanyDTO>> response = null;
+        try {
+            response = ResponseEntity.ok(jobService.getAllJobs());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+
+        return response;
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public void createJob(@RequestBody Job job) {
-        jobService.createJob(job);
+    public ResponseEntity<JobWithCompanyDTO> createJob(@RequestBody Job job) {
+        try {
+            JobWithCompanyDTO jobWithCompanyDTO = jobService.createJob(job);
+            return ResponseEntity.ok(jobWithCompanyDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
 
     }
 
@@ -35,7 +47,7 @@ public class JobController {
         JobWithCompanyDTO jobWithCompanyDTO = jobService.getJobById(id);
 
         return jobWithCompanyDTO == null ?
-                new ResponseEntity<>(HttpStatus.NOT_FOUND) :
+                ResponseEntity.notFound().build() :
                 ResponseEntity.ok(jobWithCompanyDTO);
 
     }
@@ -45,19 +57,24 @@ public class JobController {
         if (jobService.deleteJob(id)) {
             return ResponseEntity.ok(null);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return ResponseEntity.notFound().build();
 
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Job> updateJob(@PathVariable Long id, @RequestBody Job job) {
+    public ResponseEntity<JobWithCompanyDTO> updateJob(@PathVariable Long id, @RequestBody Job updatedJob) {
 
-        Job jobNullable = jobService.updateJob(id, job);
+        try {
+            JobWithCompanyDTO jobWithCompanyDTO = jobService.updateJob(id, updatedJob);
 
-        if (jobNullable != null) {
-            return ResponseEntity.ok(jobNullable);
+            if (jobWithCompanyDTO != null) {
+                return ResponseEntity.ok(jobWithCompanyDTO);
+            }
+
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
     }
 

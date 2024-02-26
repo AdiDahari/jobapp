@@ -5,6 +5,8 @@ import dev.adidahari.jobapp.jobservice.job.JobRepository;
 import dev.adidahari.jobapp.jobservice.job.JobService;
 import dev.adidahari.jobapp.jobservice.job.dto.JobWithCompanyDTO;
 import dev.adidahari.jobapp.jobservice.job.external.Company;
+import dev.adidahari.jobapp.jobservice.job.mapper.JobMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,6 +17,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class JobServiceImpl implements JobService {
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     private final JobRepository jobRepository;
 
@@ -33,8 +38,12 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void createJob(Job job) {
-        jobRepository.save(job);
+    public JobWithCompanyDTO createJob(Job job) {
+
+        JobWithCompanyDTO jobWithCompanyDTO = jobToJobWithCompanyDTO(job);
+        Job savedJob = jobRepository.save(job);
+
+        return jobWithCompanyDTO;
     }
 
     @Override
@@ -58,22 +67,27 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job updateJob(Long id, Job job) {
+    public JobWithCompanyDTO updateJob(Long id, Job updatedJob) {
 
         Optional<Job> jobNullable = jobRepository.findById(id);
 
+
         if (jobNullable.isPresent()) {
-            Job jobEntity = jobNullable.get();
+            Job job = jobNullable.get();
 
-            jobEntity.setId(id);
-            jobEntity.setTitle(job.getTitle());
-            jobEntity.setDescription(job.getDescription());
-            jobEntity.setMinSalary(job.getMinSalary());
-            jobEntity.setMaxSalary(job.getMaxSalary());
-            jobEntity.setLocation(job.getLocation());
-            jobEntity.setCompanyId(job.getCompanyId());
+            job.setId(id);
+            job.setTitle(updatedJob.getTitle());
+            job.setDescription(updatedJob.getDescription());
+            job.setMinSalary(updatedJob.getMinSalary());
+            job.setMaxSalary(updatedJob.getMaxSalary());
+            job.setLocation(updatedJob.getLocation());
+            job.setCompanyId(updatedJob.getCompanyId());
 
-            return jobRepository.save(jobEntity);
+            JobWithCompanyDTO jobWithCompanyDTO = jobToJobWithCompanyDTO(job);
+
+            jobRepository.save(job);
+
+            return jobWithCompanyDTO;
         }
 
         return null;
@@ -82,15 +96,13 @@ public class JobServiceImpl implements JobService {
     // Private Methods //
 
     private JobWithCompanyDTO jobToJobWithCompanyDTO(Job job) {
-        RestTemplate restTemplate = new RestTemplate();
+        Company company = getCompany(job);
 
-        JobWithCompanyDTO jobWithCompanyDTO = new JobWithCompanyDTO();
+        return JobMapper.convertToJobWithCompanyDto(job, company);
+    }
 
-        Company company = restTemplate.getForObject("http://localhost:8081/companies/" + job.getCompanyId(), Company.class);
-
-        jobWithCompanyDTO.setJob(job);
-        jobWithCompanyDTO.setCompany(company);
-
-        return jobWithCompanyDTO;
+    private Company getCompany(Job job) {
+        return restTemplate.getForObject("http://company-service:8081/companies/" + job.getCompanyId(),
+                Company.class);
     }
 }
