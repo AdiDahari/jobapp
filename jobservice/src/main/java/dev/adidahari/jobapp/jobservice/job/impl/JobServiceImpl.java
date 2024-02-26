@@ -3,30 +3,27 @@ package dev.adidahari.jobapp.jobservice.job.impl;
 import dev.adidahari.jobapp.jobservice.job.Job;
 import dev.adidahari.jobapp.jobservice.job.JobRepository;
 import dev.adidahari.jobapp.jobservice.job.JobService;
+import dev.adidahari.jobapp.jobservice.job.clients.CompanyClient;
+import dev.adidahari.jobapp.jobservice.job.clients.ReviewClient;
 import dev.adidahari.jobapp.jobservice.job.dto.JobDTO;
 import dev.adidahari.jobapp.jobservice.job.external.Company;
 import dev.adidahari.jobapp.jobservice.job.external.Review;
 import dev.adidahari.jobapp.jobservice.job.mapper.JobMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class JobServiceImpl implements JobService {
-
-    @Autowired
-    private RestTemplate restTemplate;
-
     private final JobRepository jobRepository;
+    private final CompanyClient companyClient;
+    private final ReviewClient reviewClient;
 
-    public JobServiceImpl(JobRepository jobRepository) {
+    public JobServiceImpl(JobRepository jobRepository, CompanyClient companyClient, ReviewClient reviewClient) {
         this.jobRepository = jobRepository;
+        this.companyClient = companyClient;
+        this.reviewClient = reviewClient;
     }
 
     // Override Methods //
@@ -36,16 +33,15 @@ public class JobServiceImpl implements JobService {
         List<Job> jobs = jobRepository.findAll();
 
         return jobs.stream()
-                .map(this::jobToJobWithCompanyDTO).toList();
+                .map(this::jobToJobDTO).toList();
     }
 
     @Override
     public JobDTO createJob(Job job) {
 
-        JobDTO jobDTO = jobToJobWithCompanyDTO(job);
         Job savedJob = jobRepository.save(job);
 
-        return jobDTO;
+        return jobToJobDTO(savedJob);
     }
 
     @Override
@@ -53,7 +49,7 @@ public class JobServiceImpl implements JobService {
     {
         Job job = jobRepository.findById(id).orElse(null);
         if (job != null) {
-            return jobToJobWithCompanyDTO(job);
+            return jobToJobDTO(job);
         }
         return null;
     }
@@ -85,7 +81,7 @@ public class JobServiceImpl implements JobService {
             job.setLocation(updatedJob.getLocation());
             job.setCompanyId(updatedJob.getCompanyId());
 
-            JobDTO jobDTO = jobToJobWithCompanyDTO(job);
+            JobDTO jobDTO = jobToJobDTO(job);
 
             jobRepository.save(job);
 
@@ -97,27 +93,18 @@ public class JobServiceImpl implements JobService {
 
     // Private Methods //
 
-    private JobDTO jobToJobWithCompanyDTO(Job job) {
+    private JobDTO jobToJobDTO(Job job) {
         Company company = getCompany(job);
-        List<Review> reviews = getCompanyReviews(company);
+        List<Review> reviews = getCompanyReviews(company.getId());
 
         return JobMapper.convertToJobDto(job, company, reviews);
     }
 
     private Company getCompany(Job job) {
-        return restTemplate.getForObject("http://company-service:8081/companies/" + job.getCompanyId(),
-                Company.class);
+        return companyClient.getCompany(job.getCompanyId());
     }
 
-    private List<Review> getCompanyReviews(Company company) {
-        ResponseEntity<List<Review>> reviewsResponse = restTemplate.exchange(
-                "http://review-service:8083/reviews?companyId=" + company.getId(),
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<Review>>() {});
-
-        return reviewsResponse.getBody();
-
-
+    private List<Review> getCompanyReviews(Long companyId) {
+        return reviewClient.getReviewsByCompany(companyId);
     }
 }
