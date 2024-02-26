@@ -5,6 +5,10 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/jobservice/pom.xml" />
+        <option value="$PROJECT_DIR$/companyservice/pom.xml" />
+        <option value="$PROJECT_DIR$/registryservice/pom.xml" />
+        <option value="$PROJECT_DIR$/reviewservice/pom.xml" />
+        <option value="$PROJECT_DIR$/configserver/pom.xml" />
       </list>
     </option>
     <option name="workspaceImportForciblyTurnedOn" value="true" />

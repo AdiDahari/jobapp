@@ -1,7 +1,5 @@
 package dev.adidahari.jobapp.jobservice.job.external;
 
-import java.util.List;
-
 public class Company {
     private Long id;
     private String name;

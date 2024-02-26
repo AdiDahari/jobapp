@@ -1,7 +1,6 @@
 package dev.adidahari.jobapp.jobservice.job;
 
 import jakarta.persistence.*;
-import org.springframework.web.service.annotation.DeleteExchange;
 
 import java.math.BigDecimal;
 
